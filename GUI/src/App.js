@@ -9,9 +9,7 @@ function App() {
       <div className="center">
         <Login />
       </div>
-      <div className="center">
-        <Logout />
-      </div>
+
     </div>
   );
 }

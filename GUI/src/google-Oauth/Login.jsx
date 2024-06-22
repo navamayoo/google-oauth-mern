@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   GoogleOAuthProvider,
   GoogleLogin,
@@ -8,22 +8,27 @@ import { jwtDecode } from "jwt-decode";
 
 const CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
 
-export default function login() {
-
+export default function Login() {
   const [loginData, setLoginData] = useState(
     localStorage.getItem("loginData")
       ? JSON.parse(localStorage.getItem("loginData"))
       : null
   );
 
+  const [user, setUser] = useState({});
+
+  useEffect(() => {
+    if (loginData) {
+      const decodedUser = jwtDecode(loginData.sessionToken);
+      setUser(decodedUser);
+    }
+  }, [loginData]);
 
   const handelLogin = async (googleData) => {
-    //const userData = jwtDecode(googleData);
-
     try {
       const res = await fetch("http://localhost:5000/api/google-login", {
         method: "POST",
-        body: JSON.stringify({token: googleData, }),
+        body: JSON.stringify({ token: googleData }),
         headers: { "Content-Type": "application/json" },
       });
 
@@ -39,19 +44,42 @@ export default function login() {
     }
   };
 
+
+  const handelLogout = () => {
+    setLoginData(null);
+    localStorage.removeItem("loginData");
+    googleLogout();
+  };
+
+
   return (
     <div className="App">
-      <button type="button">
-
-        <GoogleOAuthProvider clientId={CLIENT_ID}>
-          <GoogleLogin
-            onSuccess={(credentialResponse) => {
-              handelLogin(credentialResponse.credential);
-            }}
-            onError={() => {}}
-          />
-        </GoogleOAuthProvider>
-      </button>
+      {loginData ? (
+        <>
+          <div>
+            <img src={user.picture} alt={user.userName} />
+            <h3>{user.email}</h3>
+            <h6>{user.userName}</h6>
+          </div>
+          <div>
+            {" "}
+            <button onClick={handelLogout}>Logout</button>
+          </div>
+        </>
+      ) : (
+        <div className="App">
+          <button type="button">
+            <GoogleOAuthProvider clientId={CLIENT_ID}>
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  handelLogin(credentialResponse.credential);
+                }}
+                onError={() => {}}
+              />
+            </GoogleOAuthProvider>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

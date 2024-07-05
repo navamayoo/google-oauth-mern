@@ -44,13 +44,11 @@ export default function Login() {
     }
   };
 
-
   const handelLogout = () => {
     setLoginData(null);
     localStorage.removeItem("loginData");
     googleLogout();
   };
-
 
   return (
     <div className="App">
